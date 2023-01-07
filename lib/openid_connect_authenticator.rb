@@ -117,6 +117,7 @@ class OpenIDConnectAuthenticator < Auth::ManagedAuthenticator
                               end,
                               code_challenge_method: "S256",
                             },
+                            request_groups: provides_groups?,
                           )
 
                           opts[:client_options][:connection_opts] = {
@@ -148,5 +149,17 @@ class OpenIDConnectAuthenticator < Auth::ManagedAuthenticator
 
   def request_timeout_seconds
     GlobalSetting.openid_connect_request_timeout_seconds
+  end
+
+  def after_authenticate(auth_token, existing_account: nil)
+    result = super
+    if provides_groups? && (groups = auth_token[:extra][:raw_groups])
+      result.associated_groups = groups.map { |group| {id: group, name: group} }
+    end
+    result
+  end
+
+  def provides_groups?
+    true
   end
 end

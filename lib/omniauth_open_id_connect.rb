@@ -209,11 +209,16 @@ module ::OmniAuth
       extra do
         hash = {}
         hash[:raw_info] = options.use_userinfo ? userinfo_response : id_token_info
+        hash[:raw_groups] = raw_groups if options.request_groups
         hash[:id_token] = access_token["id_token"]
         prune! hash
       end
 
       private
+
+      def raw_groups
+        options.use_userinfo ? userinfo_response['groups'] : []
+      end
 
       def callback_url
         full_host + script_name + callback_path
